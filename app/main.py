@@ -9,6 +9,10 @@ st.set_page_config(page_title="🧠 Markdown Portal for AI 2025", layout="wide")
 st.title("📚 Markdown Portal for AI 2025")
 st.markdown("뉴스, 블로그, 논문 등의 원문을 요약하고 태깅하며, 결과를 Markdown으로 저장하고 DB에 기록합니다.")
 
+# ✅ DB 초기화 (앱 시작 시)
+from db.models import init_db
+init_db()
+
 # 🛠️ 자동 수집 버튼
 if st.button("📡 자동 뉴스 수집"):
     with st.spinner("🌀 네이버 뉴스에서 'AI' 관련 문서 수집 중..."):

@@ -1,0 +1,4 @@
+# 예시: 주요 뉴스 사이트의 RSS
+https://rss.nytimes.com/services/xml/rss/nyt/World.xml
+https://www.theguardian.com/world/rss
+https://feeds.bbci.co.uk/news/world/rss.xml

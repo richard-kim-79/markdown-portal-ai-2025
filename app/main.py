@@ -2,14 +2,34 @@ import streamlit as st
 from summarizer.summarizer import summarize_documents
 from summarizer.tagger import generate_tags
 from summarizer.markdown_generator import save_markdown
-from db.models import insert_document, get_all_documents
+from db.models import insert_document, get_all_documents, log_collection, get_recent_logs
+from crawler.collector import collect_news_from_naver  # ✅ 크롤러 연동
 
 st.set_page_config(page_title="🧠 Markdown Portal for AI 2025", layout="wide")
 st.title("📚 Markdown Portal for AI 2025")
-
 st.markdown("뉴스, 블로그, 논문 등의 원문을 요약하고 태깅하며, 결과를 Markdown으로 저장하고 DB에 기록합니다.")
 
-# 📥 입력 폼
+# 🛠️ 자동 수집 버튼
+if st.button("📡 자동 뉴스 수집"):
+    with st.spinner("🌀 네이버 뉴스에서 'AI' 관련 문서 수집 중..."):
+        results = collect_news_from_naver(query="AI", max_articles=3)
+        for article in results:
+            title = article.get("title", "제목 없음")
+            try:
+                url = article["url"]
+                content = article["content"]
+                summary = summarize_documents(content)
+                tags = generate_tags(summary)
+                save_path = save_markdown(title, summary, tags, content)
+                insert_document(title, content, summary, tags, "뉴스", url, str(save_path))
+                log_collection("naver_news", "AI", "success", title)
+                st.toast(f"✅ 저장 완료: {title}")
+            except Exception as e:
+                log_collection("naver_news", "AI", "fail", f"{title} - {e}")
+                st.error(f"❌ {title} 저장 중 오류 발생: {e}")
+        st.success("✅ 자동 수집 완료!")
+
+# 📥 수동 입력 폼
 with st.form("input_form"):
     url = st.text_input("🔗 원본 URL", "")
     title = st.text_input("📝 문서 제목", "")
@@ -17,7 +37,6 @@ with st.form("input_form"):
     content = st.text_area("📄 원문 텍스트", height=300)
     submitted = st.form_submit_button("요약 및 저장")
 
-# ✅ 저장 처리
 if submitted:
     if not content.strip():
         st.warning("⚠️ 원문 텍스트를 입력해주세요.")
@@ -82,3 +101,11 @@ if filtered_docs:
             st.markdown(f"📁 저장 경로: `{path}`")
 else:
     st.info("🔍 조건에 맞는 문서가 없습니다.")
+
+# 🧾 최근 수집 로그
+st.markdown("---")
+st.subheader("🪵 수집 로그")
+logs = get_recent_logs(limit=10)
+for log in logs:
+    status_emoji = "✅" if log[3] == "success" else "❌"
+    st.markdown(f"{status_emoji} `{log[5][:19]}` | {log[1]} | `{log[2]}` → {log[4]}")

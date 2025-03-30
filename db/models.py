@@ -13,7 +13,7 @@ DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def init_db():
     """
-    summary_documents 및 collection_logs 테이블을 생성 (존재하지 않을 경우).
+    summary_documents 및 collection_logs 테이블을 생성합니다. (존재하지 않을 경우)
     """
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
@@ -59,7 +59,7 @@ def insert_document(
     saved_path: Optional[str] = None
 ):
     """
-    새 문서를 summary_documents 테이블에 삽입합니다.
+    summary_documents 테이블에 새 문서를 삽입합니다.
     """
     tag_string = ",".join(tags) if tags else ""
     with sqlite3.connect(DB_PATH) as conn:
@@ -73,20 +73,20 @@ def insert_document(
 
 def get_all_documents() -> List[Tuple[Any]]:
     """
-    저장된 모든 문서를 최신순으로 반환합니다.
+    저장된 모든 문서를 생성일 기준 내림차순으로 반환합니다.
     """
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT * FROM summary_documents
-            ORDER BY created_at DESC
+            ORDER BY datetime(created_at) DESC
         """)
         return cursor.fetchall()
 
 
 def log_collection(source: str, keyword: str, status: str, message: str):
     """
-    수집 결과를 collection_logs 테이블에 저장합니다.
+    수집 로그 정보를 collection_logs 테이블에 저장합니다.
     """
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
@@ -99,13 +99,13 @@ def log_collection(source: str, keyword: str, status: str, message: str):
 
 def get_recent_logs(limit: int = 50) -> List[Tuple[Any]]:
     """
-    최근 수집 로그를 반환합니다.
+    최근 수집 로그를 최신순으로 최대 limit개 반환합니다.
     """
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT * FROM collection_logs
-            ORDER BY created_at DESC
+            ORDER BY datetime(created_at) DESC
             LIMIT ?
         """, (limit,))
         return cursor.fetchall()

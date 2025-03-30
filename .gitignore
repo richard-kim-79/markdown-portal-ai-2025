@@ -1,0 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite database
+data/*.db
+
+# Markdown output
+docs/*.md
+
+# OS files
+.DS_Store
+
+# Python environments
+.venv/
+env/
